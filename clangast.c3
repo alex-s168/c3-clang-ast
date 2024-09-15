@@ -144,6 +144,7 @@ enum NodeKind : int
     TEMPLATE_TYPE_PARM_DECL,
     NAMESPACE_DECL,
     EMPTY_DECL,
+    UNKNOWN,
 }
 
 struct NodeConstantArrayType
@@ -444,9 +445,13 @@ fn void Node.free(&self)
     }
 }
 
-fn NodeKind! parse_kind(String str) @private 
+fn NodeKind parse_kind(String str) @private 
 {
-    return parse_enum(NodeKind, str);
+    if (try k = parse_enum(NodeKind, str))
+    {
+        return k;
+    }
+    return NodeKind.UNKNOWN;
 }
 
 fn Node! parse_node(Object* obj) @private
@@ -455,7 +460,7 @@ fn Node! parse_node(Object* obj) @private
     
     n.id = parse_id(obj.get_string("id")!)!;
 
-    n.kind = parse_kind(obj.get_string("kind")!)!;
+    n.kind = parse_kind(obj.get_string("kind")!);
 
     n.range = maybe::EMPTY(<Range>);
     if (try range = parse_range(obj.get("range")!))
